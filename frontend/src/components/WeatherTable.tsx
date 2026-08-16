@@ -4,8 +4,19 @@ function formatValue(reading: ParameterReading): string {
   return `${reading.value} ${reading.unit}`
 }
 
+function formatLocation(reading: WeatherStationReading): string {
+  if (reading.latitude === null || reading.longitude === null) {
+    return '—'
+  }
+  return `${reading.latitude.toFixed(4)}, ${reading.longitude.toFixed(4)}`
+}
+
 function formatTime(reading: ParameterReading): string {
-  return new Date(reading.measuredAt).toLocaleString()
+  const date = new Date(reading.measuredAt)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const datePart = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  const timePart = `${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return `${datePart} ${timePart}`
 }
 
 /** Shows the latest reading; if there's a series (period=day), the rest expand on demand. */
@@ -64,6 +75,9 @@ export function WeatherTable({ readings }: WeatherTableProps) {
             Wind gust
           </th>
           <th scope="col" className="py-2 pr-4">
+            Location
+          </th>
+          <th scope="col" className="py-2 pr-4">
             Latest measured at
           </th>
         </tr>
@@ -84,6 +98,7 @@ export function WeatherTable({ readings }: WeatherTableProps) {
               <td className="py-2 pr-4">
                 <ParameterCell readings={reading.windGust} />
               </td>
+              <td className="py-2 pr-4 text-sm text-gray-500">{formatLocation(reading)}</td>
               <td className="py-2 pr-4 text-sm text-gray-500">
                 {latest ? formatTime(latest) : ''}
               </td>

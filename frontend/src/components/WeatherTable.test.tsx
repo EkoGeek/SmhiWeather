@@ -36,6 +36,22 @@ describe('WeatherTable', () => {
     expect(screen.getAllByRole('row')).toHaveLength(2) // header + 1 data row
   })
 
+  it('shows the station location, and a dash when it is unknown', () => {
+    const noLocationReading: WeatherStationReading = {
+      ...hourReading,
+      stationId: '2',
+      latitude: null,
+      longitude: null,
+      windGust: [
+        { value: 9.7, unit: 'meter per sekund', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' },
+      ],
+    }
+    render(<WeatherTable readings={[hourReading, noLocationReading]} />)
+
+    expect(screen.getByText('59.3400, 18.0500')).toBeInTheDocument()
+    expect(screen.getAllByText('—')).toHaveLength(2) // hourReading's missing wind gust + noLocationReading's location
+  })
+
   it('shows the latest value plus an expandable series when there is more than one reading', () => {
     render(<WeatherTable readings={[dayReading]} />)
 
