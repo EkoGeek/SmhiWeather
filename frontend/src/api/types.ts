@@ -10,8 +10,9 @@ export interface WeatherStationReading {
   stationName: string
   latitude: number | null
   longitude: number | null
-  temperature: ParameterReading | null
-  windGust: ParameterReading | null
+  /** One entry for period=hour, up to ~24 for period=day. Empty if the station doesn't measure it. */
+  temperature: ParameterReading[]
+  windGust: ParameterReading[]
 }
 
 export type Period = 'hour' | 'day'

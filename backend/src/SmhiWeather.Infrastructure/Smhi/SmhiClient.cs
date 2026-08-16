@@ -53,8 +53,8 @@ public sealed class SmhiClient(HttpClient httpClient) : ISmhiClient
         var unit = dto.Parameter.Unit;
 
         var stations = dto.Station
-            .Select(station => MapValue(station.Key, station.Name, station.Latitude, station.Longitude, unit, station.Value))
-            .OfType<SmhiStationValue>()
+            .Select(station => MapSeries(station.Key, station.Name, station.Latitude, station.Longitude, unit, station.Value))
+            .OfType<SmhiStationSeries>()
             .ToList();
 
         return new SmhiParameterDataset(stations);
@@ -64,7 +64,7 @@ public sealed class SmhiClient(HttpClient httpClient) : ISmhiClient
     {
         var position = dto.Position.Count > 0 ? dto.Position[^1] : null;
 
-        var value = MapValue(
+        var series = MapSeries(
             dto.Station.Key,
             dto.Station.Name,
             position?.Latitude,
@@ -72,10 +72,11 @@ public sealed class SmhiClient(HttpClient httpClient) : ISmhiClient
             dto.Parameter.Unit,
             dto.Value);
 
-        return new SmhiParameterDataset(value is null ? [] : [value]);
+        return new SmhiParameterDataset(series is null ? [] : [series]);
     }
 
-    private static SmhiStationValue? MapValue(
+    /// <summary>Maps every valid value SMHI returned for a station (1 for "hour", up to ~24 for "day").</summary>
+    private static SmhiStationSeries? MapSeries(
         string stationId,
         string stationName,
         double? latitude,
@@ -83,21 +84,26 @@ public sealed class SmhiClient(HttpClient httpClient) : ISmhiClient
         string unit,
         List<SmhiValueDto> values)
     {
-        var latest = values.Count > 0 ? values[^1] : null;
+        var measurements = values
+            .Select(TryMapMeasurement)
+            .OfType<SmhiMeasurement>()
+            .ToList();
 
-        if (latest?.Value is null || !double.TryParse(latest.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedValue))
+        if (measurements.Count == 0)
         {
             return null;
         }
 
-        return new SmhiStationValue(
-            stationId,
-            stationName,
-            latitude,
-            longitude,
-            parsedValue,
-            unit,
-            DateTimeOffset.FromUnixTimeMilliseconds(latest.Date),
-            latest.Quality ?? "");
+        return new SmhiStationSeries(stationId, stationName, latitude, longitude, unit, measurements);
+    }
+
+    private static SmhiMeasurement? TryMapMeasurement(SmhiValueDto value)
+    {
+        if (value.Value is null || !double.TryParse(value.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            return null;
+        }
+
+        return new SmhiMeasurement(parsedValue, DateTimeOffset.FromUnixTimeMilliseconds(value.Date), value.Quality ?? "");
     }
 }

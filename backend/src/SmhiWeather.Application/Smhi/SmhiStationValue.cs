@@ -1,16 +1,18 @@
 namespace SmhiWeather.Application.Smhi;
 
+/// <summary>One measured value at one point in time.</summary>
+public sealed record SmhiMeasurement(double Value, DateTimeOffset MeasuredAt, string Quality);
+
 /// <summary>
-/// A single station's latest value for one SMHI parameter, as returned by <see cref="ISmhiClient"/>.
+/// A single station's measurements for one SMHI parameter over the requested period, as returned
+/// by <see cref="ISmhiClient"/>. Ordered oldest to newest.
 /// </summary>
-public sealed record SmhiStationValue(
+public sealed record SmhiStationSeries(
     string StationId,
     string StationName,
     double? Latitude,
     double? Longitude,
-    double Value,
     string Unit,
-    DateTimeOffset MeasuredAt,
-    string Quality);
+    IReadOnlyList<SmhiMeasurement> Measurements);
 
-public sealed record SmhiParameterDataset(IReadOnlyList<SmhiStationValue> Stations);
+public sealed record SmhiParameterDataset(IReadOnlyList<SmhiStationSeries> Stations);

@@ -40,8 +40,23 @@ public class WeatherEndpointsTests(WeatherApiFactory factory) : IClassFixture<We
         var readings = await response.Content.ReadFromJsonAsync<List<WeatherStationReadingResponse>>();
         var reading = Assert.Single(readings!);
         Assert.Equal("98230", reading.StationId);
-        Assert.NotNull(reading.Temperature);
-        Assert.NotNull(reading.WindGust);
+        Assert.Single(reading.Temperature);
+        Assert.Single(reading.WindGust);
+    }
+
+    [Fact]
+    public async Task GetWeatherReadings_DayPeriodWithStationId_ReturnsFullSeriesPerParameter()
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(ApiKeyAuthenticationHandler.HeaderName, WeatherApiFactory.ValidApiKey);
+
+        var response = await client.GetAsync("/api/weather-readings?stationId=98230&period=day");
+
+        response.EnsureSuccessStatusCode();
+        var readings = await response.Content.ReadFromJsonAsync<List<WeatherStationReadingResponse>>();
+        var reading = Assert.Single(readings!);
+        Assert.Equal([26.5, 25.1, 18.4], reading.Temperature.Select(r => r.Value));
+        Assert.Equal([4.0, 6.2, 9.7], reading.WindGust.Select(r => r.Value));
     }
 
     [Fact]
@@ -51,6 +66,18 @@ public class WeatherEndpointsTests(WeatherApiFactory factory) : IClassFixture<We
         client.DefaultRequestHeaders.Add(ApiKeyAuthenticationHandler.HeaderName, WeatherApiFactory.ValidApiKey);
 
         var response = await client.GetAsync("/api/weather-readings?period=week");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetWeatherReadings_DayPeriodWithoutStationId_ReturnsValidationProblem()
+    {
+        // SMHI has no all-stations feed for period=latest-day; only per-station queries support it.
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add(ApiKeyAuthenticationHandler.HeaderName, WeatherApiFactory.ValidApiKey);
+
+        var response = await client.GetAsync("/api/weather-readings?period=day");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

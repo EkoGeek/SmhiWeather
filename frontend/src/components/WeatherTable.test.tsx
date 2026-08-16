@@ -3,13 +3,22 @@ import { describe, expect, it } from 'vitest'
 import { WeatherTable } from './WeatherTable'
 import type { WeatherStationReading } from '../api/types'
 
-const reading: WeatherStationReading = {
+const hourReading: WeatherStationReading = {
   stationId: '98230',
   stationName: 'Stockholm-Observatoriekullen A',
   latitude: 59.34,
   longitude: 18.05,
-  temperature: { value: 18.4, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' },
-  windGust: null,
+  temperature: [{ value: 18.4, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' }],
+  windGust: [],
+}
+
+const dayReading: WeatherStationReading = {
+  ...hourReading,
+  temperature: [
+    { value: 26.5, unit: 'celsius', measuredAt: '2026-08-16T09:00:00Z', quality: 'G' },
+    { value: 25.1, unit: 'celsius', measuredAt: '2026-08-16T10:00:00Z', quality: 'G' },
+    { value: 18.4, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' },
+  ],
 }
 
 describe('WeatherTable', () => {
@@ -20,10 +29,29 @@ describe('WeatherTable', () => {
   })
 
   it('renders a row per station, with a dash for a missing parameter', () => {
-    render(<WeatherTable readings={[reading]} />)
+    render(<WeatherTable readings={[hourReading]} />)
 
     expect(screen.getByText(/Stockholm-Observatoriekullen A/)).toBeInTheDocument()
     expect(screen.getByText('18.4 celsius')).toBeInTheDocument()
     expect(screen.getAllByRole('row')).toHaveLength(2) // header + 1 data row
+  })
+
+  it('shows the latest value plus an expandable series when there is more than one reading', () => {
+    render(<WeatherTable readings={[dayReading]} />)
+
+    expect(screen.getByText('18.4 celsius')).toBeInTheDocument()
+    expect(screen.getByText('(3 readings)')).toBeInTheDocument()
+    expect(screen.getByText(/26.5 celsius at/)).toBeInTheDocument()
+  })
+
+  it('lists the expanded series newest-first', () => {
+    render(<WeatherTable readings={[dayReading]} />)
+
+    const listedValues = screen.getAllByRole('listitem').map((item) => item.textContent)
+    expect(listedValues).toEqual([
+      expect.stringContaining('18.4 celsius'),
+      expect.stringContaining('25.1 celsius'),
+      expect.stringContaining('26.5 celsius'),
+    ])
   })
 })

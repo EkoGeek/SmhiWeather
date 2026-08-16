@@ -20,7 +20,10 @@ export async function fetchWeatherReadings(
 
   if (!response.ok) {
     const problem = await response.json().catch(() => null)
-    throw new WeatherApiError(problem?.title ?? `Request failed with status ${response.status}.`)
+    const validationDetail = problem?.errors && Object.values(problem.errors).flat()[0]
+    const message =
+      validationDetail ?? problem?.title ?? `Request failed with status ${response.status}.`
+    throw new WeatherApiError(String(message))
   }
 
   return (await response.json()) as WeatherStationReading[]

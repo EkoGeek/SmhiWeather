@@ -5,24 +5,24 @@ namespace SmhiWeather.Application.Weather;
 
 /// <summary>
 /// Merges independently-fetched Lufttemperatur and Byvind datasets into one reading per station.
-/// A station that only appears in one dataset is still included, with the other parameter left null.
+/// A station that only appears in one dataset is still included, with the other parameter empty.
 /// </summary>
 public static class WeatherReadingCombiner
 {
     public static IReadOnlyList<WeatherStationReading> Combine(
-        IReadOnlyList<SmhiStationValue> temperature,
-        IReadOnlyList<SmhiStationValue> windGust)
+        IReadOnlyList<SmhiStationSeries> temperature,
+        IReadOnlyList<SmhiStationSeries> windGust)
     {
-        var temperatureByStation = temperature.ToDictionary(reading => reading.StationId);
-        var windGustByStation = windGust.ToDictionary(reading => reading.StationId);
+        var temperatureByStation = temperature.ToDictionary(series => series.StationId);
+        var windGustByStation = windGust.ToDictionary(series => series.StationId);
         var stationIds = temperatureByStation.Keys.Union(windGustByStation.Keys);
 
         return stationIds
             .Select(stationId =>
             {
-                temperatureByStation.TryGetValue(stationId, out var temperatureReading);
-                windGustByStation.TryGetValue(stationId, out var windGustReading);
-                return ToStationReading(stationId, temperatureReading, windGustReading);
+                temperatureByStation.TryGetValue(stationId, out var temperatureSeries);
+                windGustByStation.TryGetValue(stationId, out var windGustSeries);
+                return ToStationReading(stationId, temperatureSeries, windGustSeries);
             })
             .OrderBy(reading => reading.StationName, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -30,8 +30,8 @@ public static class WeatherReadingCombiner
 
     private static WeatherStationReading ToStationReading(
         string stationId,
-        SmhiStationValue? temperature,
-        SmhiStationValue? windGust)
+        SmhiStationSeries? temperature,
+        SmhiStationSeries? windGust)
     {
         var latitude = temperature?.Latitude ?? windGust?.Latitude;
         var longitude = temperature?.Longitude ?? windGust?.Longitude;
@@ -43,12 +43,20 @@ public static class WeatherReadingCombiner
             Location = latitude is not null && longitude is not null
                 ? new StationLocation(latitude.Value, longitude.Value)
                 : null,
-            Temperature = temperature is null
-                ? null
-                : new ParameterReading(temperature.Value, temperature.Unit, temperature.MeasuredAt, temperature.Quality),
-            WindGust = windGust is null
-                ? null
-                : new ParameterReading(windGust.Value, windGust.Unit, windGust.MeasuredAt, windGust.Quality),
+            Temperature = ToParameterReadings(temperature),
+            WindGust = ToParameterReadings(windGust),
         };
+    }
+
+    private static IReadOnlyList<ParameterReading> ToParameterReadings(SmhiStationSeries? series)
+    {
+        if (series is null)
+        {
+            return [];
+        }
+
+        return series.Measurements
+            .Select(m => new ParameterReading(m.Value, series.Unit, m.MeasuredAt, m.Quality))
+            .ToList();
     }
 }

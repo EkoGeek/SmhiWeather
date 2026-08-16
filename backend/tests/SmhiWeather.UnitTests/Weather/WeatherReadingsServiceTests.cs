@@ -12,11 +12,15 @@ public class WeatherReadingsServiceTests
     {
         var temperature = new SmhiParameterDataset(
         [
-            new SmhiStationValue("98230", "Stockholm-Observatoriekullen A", 59.34, 18.05, 18.4, "celsius", MeasuredAt, "G"),
+            new SmhiStationSeries(
+                "98230", "Stockholm-Observatoriekullen A", 59.34, 18.05, "celsius",
+                [new SmhiMeasurement(18.4, MeasuredAt, "G")]),
         ]);
         var windGust = new SmhiParameterDataset(
         [
-            new SmhiStationValue("98230", "Stockholm-Observatoriekullen A", 59.34, 18.05, 9.7, "meter per sekund", MeasuredAt, "G"),
+            new SmhiStationSeries(
+                "98230", "Stockholm-Observatoriekullen A", 59.34, 18.05, "meter per sekund",
+                [new SmhiMeasurement(9.7, MeasuredAt, "G")]),
         ]);
         var client = new FakeSmhiClient(temperature, windGust);
         var service = new WeatherReadingsService(client);
@@ -24,8 +28,8 @@ public class WeatherReadingsServiceTests
         var result = await service.GetReadingsAsync("98230", WeatherPeriod.Hour, CancellationToken.None);
 
         var reading = Assert.Single(result);
-        Assert.Equal(18.4, reading.Temperature!.Value);
-        Assert.Equal(9.7, reading.WindGust!.Value);
+        Assert.Equal(18.4, Assert.Single(reading.Temperature).Value);
+        Assert.Equal(9.7, Assert.Single(reading.WindGust).Value);
         Assert.Equal("98230", client.RequestedStationId);
         Assert.Equal(WeatherPeriod.Hour, client.RequestedPeriod);
     }

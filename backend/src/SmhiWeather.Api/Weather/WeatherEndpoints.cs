@@ -18,7 +18,10 @@ public static class WeatherEndpoints
             .WithSummary("Get combined Lufttemperatur and Byvind readings from SMHI.")
             .WithDescription(
                 "Defaults to all stations for the latest hour. Filter with 'stationId' for a single " +
-                "station, and 'period' ('hour' or 'day', default 'hour') for how far back to look.")
+                "station, and 'period' ('hour' or 'day', default 'hour') for how far back to look. " +
+                "'day' requires a stationId - SMHI has no all-stations feed for that period. Each " +
+                "station's temperature/windGust is a list of measurements: one for 'hour', up to " +
+                "~24 for 'day'.")
             .Produces<IReadOnlyList<WeatherStationReadingResponse>>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized);
@@ -37,6 +40,16 @@ public static class WeatherEndpoints
             return TypedResults.ValidationProblem(new Dictionary<string, string[]>
             {
                 ["period"] = ["Value must be 'hour' or 'day'."],
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(stationId) && parsedPeriod == WeatherPeriod.Day)
+        {
+            // SMHI has no bulk "all stations" feed for period=latest-day (only for latest-hour) -
+            // confirmed directly against their API, which 404s for this combination.
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["stationId"] = ["'day' requires a stationId - SMHI does not provide an all-stations feed for the latest day."],
             });
         }
 

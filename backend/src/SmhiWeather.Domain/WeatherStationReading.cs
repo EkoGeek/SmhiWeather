@@ -1,8 +1,9 @@
 namespace SmhiWeather.Domain;
 
 /// <summary>
-/// Combined weather data for a single station. Either parameter may be absent if the station
-/// does not measure it, or reported no value for the requested period.
+/// Combined weather data for a single station. Temperature/WindGust hold one entry per
+/// SMHI-reported measurement for the requested period (one for "hour", up to ~24 for "day").
+/// Either list may be empty if the station does not measure that parameter.
 /// </summary>
 public sealed class WeatherStationReading
 {
@@ -12,7 +13,7 @@ public sealed class WeatherStationReading
 
     public StationLocation? Location { get; init; }
 
-    public ParameterReading? Temperature { get; init; }
+    public required IReadOnlyList<ParameterReading> Temperature { get; init; }
 
-    public ParameterReading? WindGust { get; init; }
+    public required IReadOnlyList<ParameterReading> WindGust { get; init; }
 }
