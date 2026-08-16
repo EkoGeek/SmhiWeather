@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { WeatherTable } from './WeatherTable'
 import type { WeatherStationReading } from '../api/types'
@@ -19,6 +20,40 @@ const dayReading: WeatherStationReading = {
     { value: 25.1, unit: 'celsius', measuredAt: '2026-08-16T10:00:00Z', quality: 'G' },
     { value: 18.4, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' },
   ],
+}
+
+const stations: WeatherStationReading[] = [
+  {
+    stationId: '1',
+    stationName: 'Malmö',
+    latitude: 55.6,
+    longitude: 13.0,
+    temperature: [{ value: 20, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' }],
+    windGust: [],
+  },
+  {
+    stationId: '2',
+    stationName: 'Kiruna',
+    latitude: 67.85,
+    longitude: 20.22,
+    temperature: [{ value: 10, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' }],
+    windGust: [],
+  },
+  {
+    stationId: '3',
+    stationName: 'Stockholm',
+    latitude: 59.33,
+    longitude: 18.06,
+    temperature: [],
+    windGust: [],
+  },
+]
+
+function rowStationCellTexts(): string[] {
+  return screen
+    .getAllByRole('row')
+    .slice(1) // drop the header row
+    .map((row) => row.querySelector('td')?.textContent ?? '')
 }
 
 describe('WeatherTable', () => {
@@ -69,6 +104,58 @@ describe('WeatherTable', () => {
       expect.stringContaining('18.4°C'),
       expect.stringContaining('25.1°C'),
       expect.stringContaining('26.5°C'),
+    ])
+  })
+
+  it('sorts by station name ascending, then descending on a second click', async () => {
+    const user = userEvent.setup()
+    render(<WeatherTable readings={stations} />)
+
+    await user.click(screen.getByRole('button', { name: /station/i }))
+    expect(rowStationCellTexts()).toEqual([
+      expect.stringContaining('Kiruna'),
+      expect.stringContaining('Malmö'),
+      expect.stringContaining('Stockholm'),
+    ])
+
+    await user.click(screen.getByRole('button', { name: /station/i }))
+    expect(rowStationCellTexts()).toEqual([
+      expect.stringContaining('Stockholm'),
+      expect.stringContaining('Malmö'),
+      expect.stringContaining('Kiruna'),
+    ])
+  })
+
+  it('sorts temperature numerically, with missing values sinking to the bottom', async () => {
+    const user = userEvent.setup()
+    render(<WeatherTable readings={stations} />)
+
+    await user.click(screen.getByRole('button', { name: /temperature/i }))
+    expect(rowStationCellTexts()).toEqual([
+      expect.stringContaining('Kiruna'), // 10°C
+      expect.stringContaining('Malmö'), // 20°C
+      expect.stringContaining('Stockholm'), // no reading - always last
+    ])
+  })
+
+  it('sorts location south to north, then north to south on a second click', async () => {
+    const user = userEvent.setup()
+    render(<WeatherTable readings={stations} />)
+
+    const locationHeader = screen.getByRole('button', { name: /location/i })
+
+    await user.click(locationHeader)
+    expect(rowStationCellTexts()).toEqual([
+      expect.stringContaining('Malmö'), // 55.6N
+      expect.stringContaining('Stockholm'), // 59.33N
+      expect.stringContaining('Kiruna'), // 67.85N
+    ])
+
+    await user.click(locationHeader)
+    expect(rowStationCellTexts()).toEqual([
+      expect.stringContaining('Kiruna'),
+      expect.stringContaining('Stockholm'),
+      expect.stringContaining('Malmö'),
     ])
   })
 })
