@@ -31,7 +31,7 @@ function latestOf(readings: ParameterReading[]): ParameterReading | undefined {
   return readings.at(-1)
 }
 
-/** Shows the latest reading; if there's a series (period=day), the rest expand on demand. */
+/** Shows the latest reading; if there's a series (period=day), the rest are expanded by default. */
 function ParameterCell({ readings }: { readings: ParameterReading[] }) {
   if (readings.length === 0) {
     return <span className="text-gray-500">—</span>
@@ -47,8 +47,9 @@ function ParameterCell({ readings }: { readings: ParameterReading[] }) {
   const newestFirst = [...readings].reverse()
 
   return (
-    <details>
-      <summary className="cursor-pointer">
+    <details open>
+      {/* Stop propagation so collapsing/expanding the series doesn't also trigger the row's onClick. */}
+      <summary className="cursor-pointer" onClick={(event) => event.stopPropagation()}>
         {formatValue(latest)}{' '}
         <span className="text-sm text-gray-500">({readings.length} readings)</span>
       </summary>
@@ -162,9 +163,11 @@ function SortableHeader({ column, label, sort, onSort, directionLabels }: Sortab
 
 interface WeatherTableProps {
   readings: WeatherStationReading[]
+  /** Called with a station's ID when its row is clicked or activated via keyboard. */
+  onSelectStation?: (stationId: string) => void
 }
 
-export function WeatherTable({ readings }: WeatherTableProps) {
+export function WeatherTable({ readings, onSelectStation }: WeatherTableProps) {
   const [sort, setSort] = useState<SortState | null>(null)
 
   const sortedReadings = useMemo(() => {
@@ -215,9 +218,34 @@ export function WeatherTable({ readings }: WeatherTableProps) {
       <tbody>
         {sortedReadings.map((reading) => {
           const latest = latestOf(reading.temperature) ?? latestOf(reading.windGust)
+          const selectStation = onSelectStation
+            ? () => onSelectStation(reading.stationId)
+            : undefined
 
           return (
-            <tr key={reading.stationId} className="border-b border-gray-100 align-top">
+            <tr
+              key={reading.stationId}
+              className={`border-b border-gray-100 align-top ${
+                selectStation
+                  ? 'cursor-pointer hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500'
+                  : ''
+              }`}
+              tabIndex={selectStation ? 0 : undefined}
+              onClick={selectStation}
+              onKeyDown={
+                selectStation
+                  ? (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        selectStation()
+                      }
+                    }
+                  : undefined
+              }
+              aria-label={
+                selectStation ? `Show latest day readings for ${reading.stationName}` : undefined
+              }
+            >
               <td className="py-2 pr-4">
                 {reading.stationName}{' '}
                 <span className="text-sm text-gray-500">({reading.stationId})</span>

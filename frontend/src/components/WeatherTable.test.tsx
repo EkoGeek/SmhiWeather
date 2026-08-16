@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { WeatherTable } from './WeatherTable'
 import type { WeatherStationReading } from '../api/types'
 
@@ -96,6 +96,13 @@ describe('WeatherTable', () => {
     expect(screen.getByText(/26.5°C at/)).toBeInTheDocument()
   })
 
+  it('expands a multi-reading series by default, without needing a click', () => {
+    render(<WeatherTable readings={[dayReading]} />)
+
+    const details = screen.getByText('(3 readings)').closest('details')
+    expect(details).toHaveAttribute('open')
+  })
+
   it('lists the expanded series newest-first', () => {
     render(<WeatherTable readings={[dayReading]} />)
 
@@ -157,5 +164,43 @@ describe('WeatherTable', () => {
       expect.stringContaining('Stockholm'),
       expect.stringContaining('Malmö'),
     ])
+  })
+
+  it('calls onSelectStation with the station id when its row is clicked', async () => {
+    const user = userEvent.setup()
+    const onSelectStation = vi.fn()
+    render(<WeatherTable readings={[hourReading]} onSelectStation={onSelectStation} />)
+
+    await user.click(screen.getByRole('row', { name: /Stockholm-Observatoriekullen A/i }))
+
+    expect(onSelectStation).toHaveBeenCalledExactlyOnceWith('98230')
+  })
+
+  it('activates a row via keyboard with Enter or Space', async () => {
+    const user = userEvent.setup()
+    const onSelectStation = vi.fn()
+    render(<WeatherTable readings={[hourReading]} onSelectStation={onSelectStation} />)
+
+    screen.getByRole('row', { name: /Stockholm-Observatoriekullen A/i }).focus()
+    await user.keyboard('{Enter}')
+
+    expect(onSelectStation).toHaveBeenCalledExactlyOnceWith('98230')
+  })
+
+  it('does not select the row when expanding a multi-reading series', async () => {
+    const user = userEvent.setup()
+    const onSelectStation = vi.fn()
+    render(<WeatherTable readings={[dayReading]} onSelectStation={onSelectStation} />)
+
+    await user.click(screen.getByText('(3 readings)'))
+
+    expect(onSelectStation).not.toHaveBeenCalled()
+  })
+
+  it('renders plain, non-interactive rows when onSelectStation is not provided', () => {
+    render(<WeatherTable readings={[hourReading]} />)
+
+    const dataRow = screen.getAllByRole('row')[1]
+    expect(dataRow).not.toHaveAttribute('tabindex')
   })
 })

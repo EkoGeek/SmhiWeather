@@ -22,12 +22,22 @@ function App() {
         Combined Lufttemperatur and Byvind data from SMHI's open data API.
       </p>
 
-      <WeatherFilters stationId={filters.stationId} period={filters.period} onChange={setFilters} />
+      <WeatherFilters
+        key={`${filters.stationId}-${filters.period}`}
+        stationId={filters.stationId}
+        period={filters.period}
+        onChange={setFilters}
+      />
 
       <div className="mt-6" aria-live="polite">
         {isLoading && <p className="text-gray-600">Loading...</p>}
         {error && !isLoading && <p className="text-red-700">{error}</p>}
-        {!isLoading && !error && <WeatherTable readings={data} />}
+        {!isLoading && !error && (
+          <WeatherTable
+            readings={data}
+            onSelectStation={(stationId) => setFilters({ stationId, period: 'day' })}
+          />
+        )}
       </div>
     </main>
   )
