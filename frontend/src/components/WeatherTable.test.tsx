@@ -173,6 +173,35 @@ describe('WeatherTable', () => {
     ])
   })
 
+  it('shows an explanatory tooltip on every column header', () => {
+    render(<WeatherTable readings={[hourReading]} />)
+
+    expect(screen.getByRole('button', { name: /station/i })).toHaveAttribute(
+      'title',
+      expect.stringContaining('SMHI weather station'),
+    )
+    expect(screen.getByRole('button', { name: /temperature/i })).toHaveAttribute(
+      'title',
+      expect.stringContaining('Lufttemperatur'),
+    )
+    expect(screen.getByRole('button', { name: /wind gust/i })).toHaveAttribute(
+      'title',
+      expect.stringContaining('Byvind'),
+    )
+    expect(screen.getByRole('button', { name: /wind speed/i })).toHaveAttribute(
+      'title',
+      expect.stringContaining('Medelvind'),
+    )
+    expect(screen.getByRole('button', { name: /location/i })).toHaveAttribute(
+      'title',
+      expect.stringContaining('latitude'),
+    )
+    expect(screen.getByRole('button', { name: /latest measured at/i })).toHaveAttribute(
+      'title',
+      expect.stringContaining('local time'),
+    )
+  })
+
   it('sorts location south to north, then north to south on a second click', async () => {
     const user = userEvent.setup()
     render(<WeatherTable readings={stations} />)

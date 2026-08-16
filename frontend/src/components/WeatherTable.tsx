@@ -127,9 +127,18 @@ interface SortableHeaderProps {
   onSort: (column: SortColumn) => void
   /** Overrides the generic ▲/▼ indicator with direction-specific text, e.g. for Location. */
   directionLabels?: { asc: string; desc: string }
+  /** Explains the column; shown as a native tooltip on hover/focus. */
+  description: string
 }
 
-function SortableHeader({ column, label, sort, onSort, directionLabels }: SortableHeaderProps) {
+function SortableHeader({
+  column,
+  label,
+  sort,
+  onSort,
+  directionLabels,
+  description,
+}: SortableHeaderProps) {
   const isActive = sort?.column === column
   const direction = isActive ? sort.direction : null
 
@@ -154,7 +163,8 @@ function SortableHeader({ column, label, sort, onSort, directionLabels }: Sortab
       <button
         type="button"
         onClick={() => onSort(column)}
-        className="flex items-center gap-1 font-medium hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        title={description}
+        className="flex items-center gap-1 border-b border-dotted border-gray-400 font-medium hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       >
         {label}
         <span aria-hidden="true" className="text-gray-400">
@@ -198,27 +208,48 @@ export function WeatherTable({ readings, onSelectStation }: WeatherTableProps) {
       </caption>
       <thead>
         <tr className="border-b border-gray-300 text-sm text-gray-600">
-          <SortableHeader column="station" label="Station" sort={sort} onSort={handleSort} />
+          <SortableHeader
+            column="station"
+            label="Station"
+            sort={sort}
+            onSort={handleSort}
+            description="SMHI weather station name and id. Click a row to view the latest day for that station."
+          />
           <SortableHeader
             column="temperature"
             label="Temperature"
             sort={sort}
             onSort={handleSort}
+            description="Lufttemperatur - momentaneous air temperature, measured once an hour."
           />
-          <SortableHeader column="windGust" label="Wind gust" sort={sort} onSort={handleSort} />
-          <SortableHeader column="windSpeed" label="Wind speed" sort={sort} onSort={handleSort} />
+          <SortableHeader
+            column="windGust"
+            label="Wind gust"
+            sort={sort}
+            onSort={handleSort}
+            description="Byvind - the maximum wind gust observed in the hour."
+          />
+          <SortableHeader
+            column="windSpeed"
+            label="Wind speed"
+            sort={sort}
+            onSort={handleSort}
+            description="Medelvind - the 10-minute mean wind speed."
+          />
           <SortableHeader
             column="location"
             label="Location"
             sort={sort}
             onSort={handleSort}
             directionLabels={{ asc: 'S → N', desc: 'N → S' }}
+            description="Station coordinates as latitude, longitude in decimal degrees."
           />
           <SortableHeader
             column="measuredAt"
             label="Latest measured at"
             sort={sort}
             onSort={handleSort}
+            description="When the most recent reading shown for this station was taken (your local time)."
           />
         </tr>
       </thead>
