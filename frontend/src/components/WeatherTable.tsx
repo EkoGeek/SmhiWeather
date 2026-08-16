@@ -1,7 +1,14 @@
 import type { ParameterReading, WeatherStationReading } from '../api/types'
 
+const UNIT_SYMBOLS: Record<string, string> = {
+  celsius: '°C',
+  'meter per sekund': 'm/s',
+}
+
 function formatValue(reading: ParameterReading): string {
-  return `${reading.value} ${reading.unit}`
+  const unit = UNIT_SYMBOLS[reading.unit] ?? reading.unit
+  const separator = unit === '°C' ? '' : ' '
+  return `${reading.value}${separator}${unit}`
 }
 
 function formatLocation(reading: WeatherStationReading): string {

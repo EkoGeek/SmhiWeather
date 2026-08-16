@@ -32,7 +32,7 @@ describe('WeatherTable', () => {
     render(<WeatherTable readings={[hourReading]} />)
 
     expect(screen.getByText(/Stockholm-Observatoriekullen A/)).toBeInTheDocument()
-    expect(screen.getByText('18.4 celsius')).toBeInTheDocument()
+    expect(screen.getByText('18.4°C')).toBeInTheDocument()
     expect(screen.getAllByRole('row')).toHaveLength(2) // header + 1 data row
   })
 
@@ -50,14 +50,15 @@ describe('WeatherTable', () => {
 
     expect(screen.getByText('59.3400, 18.0500')).toBeInTheDocument()
     expect(screen.getAllByText('—')).toHaveLength(2) // hourReading's missing wind gust + noLocationReading's location
+    expect(screen.getByText('9.7 m/s')).toBeInTheDocument()
   })
 
   it('shows the latest value plus an expandable series when there is more than one reading', () => {
     render(<WeatherTable readings={[dayReading]} />)
 
-    expect(screen.getByText('18.4 celsius')).toBeInTheDocument()
+    expect(screen.getByText('18.4°C')).toBeInTheDocument()
     expect(screen.getByText('(3 readings)')).toBeInTheDocument()
-    expect(screen.getByText(/26.5 celsius at/)).toBeInTheDocument()
+    expect(screen.getByText(/26.5°C at/)).toBeInTheDocument()
   })
 
   it('lists the expanded series newest-first', () => {
@@ -65,9 +66,9 @@ describe('WeatherTable', () => {
 
     const listedValues = screen.getAllByRole('listitem').map((item) => item.textContent)
     expect(listedValues).toEqual([
-      expect.stringContaining('18.4 celsius'),
-      expect.stringContaining('25.1 celsius'),
-      expect.stringContaining('26.5 celsius'),
+      expect.stringContaining('18.4°C'),
+      expect.stringContaining('25.1°C'),
+      expect.stringContaining('26.5°C'),
     ])
   })
 })
