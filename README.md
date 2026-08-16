@@ -131,3 +131,10 @@ cd frontend && npm run test
   exercise, but a real deployment would want a short-lived cache given SMHI only updates hourly data.
 - The API key is a single static value, not per-client keys or a real identity provider - matches the
   stated requirement that no key needs to be safely stored here.
+
+## Own reflections
+
+The values could perhaps be cached in the backend, so it wouldn't be necessary to call the SMHI API
+every time.
+If the whole solution were to be deployed to Azure, the API key could be placed in Azure Key Vault.
+It would also be possible to set up Application Insights or Azure Log Analytics.
