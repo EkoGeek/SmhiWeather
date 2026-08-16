@@ -10,12 +10,16 @@ public sealed class SmhiClient(HttpClient httpClient) : ISmhiClient
 {
     private const string LufttemperaturParameter = "1";
     private const string ByvindParameter = "21";
+    private const string MedelvindParameter = "4";
 
     public Task<SmhiParameterDataset> GetLufttemperaturAsync(string? stationId, WeatherPeriod period, CancellationToken cancellationToken) =>
         GetParameterDatasetAsync(LufttemperaturParameter, stationId, period, cancellationToken);
 
     public Task<SmhiParameterDataset> GetByvindAsync(string? stationId, WeatherPeriod period, CancellationToken cancellationToken) =>
         GetParameterDatasetAsync(ByvindParameter, stationId, period, cancellationToken);
+
+    public Task<SmhiParameterDataset> GetMedelvindAsync(string? stationId, WeatherPeriod period, CancellationToken cancellationToken) =>
+        GetParameterDatasetAsync(MedelvindParameter, stationId, period, cancellationToken);
 
     private async Task<SmhiParameterDataset> GetParameterDatasetAsync(
         string parameter,

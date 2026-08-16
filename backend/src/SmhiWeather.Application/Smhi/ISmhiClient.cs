@@ -10,4 +10,7 @@ public interface ISmhiClient
 
     /// <summary>Byvind (parameter 21).</summary>
     Task<SmhiParameterDataset> GetByvindAsync(string? stationId, WeatherPeriod period, CancellationToken cancellationToken);
+
+    /// <summary>Medelvind / Vindhastighet - 10-minute mean wind speed (parameter 4).</summary>
+    Task<SmhiParameterDataset> GetMedelvindAsync(string? stationId, WeatherPeriod period, CancellationToken cancellationToken);
 }

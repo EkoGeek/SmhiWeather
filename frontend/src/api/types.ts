@@ -13,6 +13,8 @@ export interface WeatherStationReading {
   /** One entry for period=hour, up to ~24 for period=day. Empty if the station doesn't measure it. */
   temperature: ParameterReading[]
   windGust: ParameterReading[]
+  /** Medelvind - 10-minute mean wind speed. */
+  windSpeed: ParameterReading[]
 }
 
 export type Period = 'hour' | 'day'

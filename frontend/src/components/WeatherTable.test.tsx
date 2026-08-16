@@ -11,6 +11,9 @@ const hourReading: WeatherStationReading = {
   longitude: 18.05,
   temperature: [{ value: 18.4, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' }],
   windGust: [],
+  windSpeed: [
+    { value: 5.1, unit: 'meter per sekund', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' },
+  ],
 }
 
 const dayReading: WeatherStationReading = {
@@ -30,6 +33,9 @@ const stations: WeatherStationReading[] = [
     longitude: 13.0,
     temperature: [{ value: 20, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' }],
     windGust: [],
+    windSpeed: [
+      { value: 6.0, unit: 'meter per sekund', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' },
+    ],
   },
   {
     stationId: '2',
@@ -38,6 +44,9 @@ const stations: WeatherStationReading[] = [
     longitude: 20.22,
     temperature: [{ value: 10, unit: 'celsius', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' }],
     windGust: [],
+    windSpeed: [
+      { value: 2.0, unit: 'meter per sekund', measuredAt: '2026-08-16T12:00:00Z', quality: 'G' },
+    ],
   },
   {
     stationId: '3',
@@ -46,6 +55,7 @@ const stations: WeatherStationReading[] = [
     longitude: 18.06,
     temperature: [],
     windGust: [],
+    windSpeed: [],
   },
 ]
 
@@ -141,6 +151,24 @@ describe('WeatherTable', () => {
     expect(rowStationCellTexts()).toEqual([
       expect.stringContaining('Kiruna'), // 10°C
       expect.stringContaining('Malmö'), // 20°C
+      expect.stringContaining('Stockholm'), // no reading - always last
+    ])
+  })
+
+  it('shows the wind speed reading', () => {
+    render(<WeatherTable readings={[hourReading]} />)
+
+    expect(screen.getByText('5.1 m/s')).toBeInTheDocument()
+  })
+
+  it('sorts wind speed numerically, with missing values sinking to the bottom', async () => {
+    const user = userEvent.setup()
+    render(<WeatherTable readings={stations} />)
+
+    await user.click(screen.getByRole('button', { name: /wind speed/i }))
+    expect(rowStationCellTexts()).toEqual([
+      expect.stringContaining('Kiruna'), // 2.0 m/s
+      expect.stringContaining('Malmö'), // 6.0 m/s
       expect.stringContaining('Stockholm'), // no reading - always last
     ])
   })

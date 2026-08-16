@@ -15,13 +15,13 @@ public static class WeatherEndpoints
 
         group.MapGet("/", GetReadingsAsync)
             .WithName("GetWeatherReadings")
-            .WithSummary("Get combined Lufttemperatur and Byvind readings from SMHI.")
+            .WithSummary("Get combined Lufttemperatur, Byvind, and Medelvind readings from SMHI.")
             .WithDescription(
                 "Defaults to all stations for the latest hour. Filter with 'stationId' for a single " +
                 "station, and 'period' ('hour' or 'day', default 'hour') for how far back to look. " +
                 "'day' requires a stationId - SMHI has no all-stations feed for that period. Each " +
-                "station's temperature/windGust is a list of measurements: one for 'hour', up to " +
-                "~24 for 'day'.")
+                "station's temperature/windGust/windSpeed is a list of measurements: one for 'hour', " +
+                "up to ~24 for 'day'.")
             .Produces<IReadOnlyList<WeatherStationReadingResponse>>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized);

@@ -12,9 +12,13 @@ public sealed class WeatherReadingsService(ISmhiClient smhiClient) : IWeatherRea
     {
         var temperatureTask = smhiClient.GetLufttemperaturAsync(stationId, period, cancellationToken);
         var windGustTask = smhiClient.GetByvindAsync(stationId, period, cancellationToken);
+        var windSpeedTask = smhiClient.GetMedelvindAsync(stationId, period, cancellationToken);
 
-        await Task.WhenAll(temperatureTask, windGustTask);
+        await Task.WhenAll(temperatureTask, windGustTask, windSpeedTask);
 
-        return WeatherReadingCombiner.Combine(temperatureTask.Result.Stations, windGustTask.Result.Stations);
+        return WeatherReadingCombiner.Combine(
+            temperatureTask.Result.Stations,
+            windGustTask.Result.Stations,
+            windSpeedTask.Result.Stations);
     }
 }

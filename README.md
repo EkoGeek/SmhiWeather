@@ -1,6 +1,7 @@
 # SMHI Weather Readings
 
-Fetches **Lufttemperatur** (parameter `1`) and **Byvind** (parameter `21`) from the
+Fetches **Lufttemperatur** (parameter `1`), **Byvind** (parameter `21`), and **Medelvind** (parameter
+`4`, 10-min mean wind speed) from the
 [SMHI open data API](https://opendata-download-metobs.smhi.se/), combines them into one dataset per
 station, and serves it through a REST API with a small React frontend on top.
 
@@ -78,8 +79,9 @@ browser - filter by station ID and/or period, or leave blank for all stations / 
 No parameters set -> all stations, latest hour. Returns `400` with a validation problem for an
 unrecognized `period`. Every request requires a valid `X-Api-Key` header, or `401`.
 
-Response is a flat array combining both parameters per station; either `temperature` or `windGust`
-may be `null` if that station doesn't report it:
+Response is a flat array combining all three parameters per station. `temperature`, `windGust`, and
+`windSpeed` are each a list of measurements - one entry for `period=hour`, up to ~24 for
+`period=day` - and empty if that station doesn't report the parameter:
 
 ```json
 [
@@ -88,8 +90,13 @@ may be `null` if that station doesn't report it:
     "stationName": "Stockholm-Observatoriekullen A",
     "latitude": 59.3417,
     "longitude": 18.0549,
-    "temperature": { "value": 16.8, "unit": "celsius", "measuredAt": "2026-08-16T11:00:00+00:00", "quality": "G" },
-    "windGust": null
+    "temperature": [
+      { "value": 16.8, "unit": "celsius", "measuredAt": "2026-08-16T11:00:00+00:00", "quality": "G" }
+    ],
+    "windGust": [],
+    "windSpeed": [
+      { "value": 5.1, "unit": "meter per sekund", "measuredAt": "2026-08-16T11:00:00+00:00", "quality": "G" }
+    ]
   }
 ]
 ```
@@ -100,11 +107,11 @@ may be `null` if that station doesn't report it:
 dotnet test SmhiWeather.slnx
 ```
 
-- `WeatherReadingCombinerTests` - the core "combine two datasets" logic: merges matching stations,
-  keeps a station present in only one dataset (with the other parameter `null`), and handles the
+- `WeatherReadingCombinerTests` - the core "combine multiple datasets" logic: merges matching
+  stations, keeps a station present in only some datasets (with the others empty), and handles the
   empty case. Pure unit tests, no I/O.
-- `WeatherReadingsServiceTests` - proves the service fetches both parameters via `ISmhiClient` and
-  forwards `stationId`/`period` correctly, using a hand-written fake client.
+- `WeatherReadingsServiceTests` - proves the service fetches all three parameters via `ISmhiClient`
+  and forwards `stationId`/`period` correctly, using a hand-written fake client.
 - `SmhiWeather.IntegrationTests` - exercises the real HTTP pipeline (auth, validation, routing) via
   `WebApplicationFactory`, with `ISmhiClient` replaced by a stub so tests never depend on SMHI being
   reachable.

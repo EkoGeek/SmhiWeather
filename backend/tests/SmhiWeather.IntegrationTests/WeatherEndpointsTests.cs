@@ -42,6 +42,7 @@ public class WeatherEndpointsTests(WeatherApiFactory factory) : IClassFixture<We
         Assert.Equal("98230", reading.StationId);
         Assert.Single(reading.Temperature);
         Assert.Single(reading.WindGust);
+        Assert.Single(reading.WindSpeed);
     }
 
     [Fact]
@@ -57,6 +58,7 @@ public class WeatherEndpointsTests(WeatherApiFactory factory) : IClassFixture<We
         var reading = Assert.Single(readings!);
         Assert.Equal([26.5, 25.1, 18.4], reading.Temperature.Select(r => r.Value));
         Assert.Equal([4.0, 6.2, 9.7], reading.WindGust.Select(r => r.Value));
+        Assert.Equal([1.5, 2.8, 5.1], reading.WindSpeed.Select(r => r.Value));
     }
 
     [Fact]

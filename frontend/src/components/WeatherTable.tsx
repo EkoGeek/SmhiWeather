@@ -64,7 +64,7 @@ function ParameterCell({ readings }: { readings: ParameterReading[] }) {
   )
 }
 
-type SortColumn = 'station' | 'temperature' | 'windGust' | 'location' | 'measuredAt'
+type SortColumn = 'station' | 'temperature' | 'windGust' | 'windSpeed' | 'location' | 'measuredAt'
 type SortDirection = 'asc' | 'desc'
 interface SortState {
   column: SortColumn
@@ -88,7 +88,8 @@ function latestValue(readings: ParameterReading[]): number | null {
 }
 
 function latestTimestamp(reading: WeatherStationReading): number | null {
-  const latest = latestOf(reading.temperature) ?? latestOf(reading.windGust)
+  const latest =
+    latestOf(reading.temperature) ?? latestOf(reading.windGust) ?? latestOf(reading.windSpeed)
   return latest ? new Date(latest.measuredAt).getTime() : null
 }
 
@@ -108,6 +109,9 @@ function getComparator(
     case 'windGust':
       return (a, b) =>
         compareNullableNumber(latestValue(a.windGust), latestValue(b.windGust), direction)
+    case 'windSpeed':
+      return (a, b) =>
+        compareNullableNumber(latestValue(a.windSpeed), latestValue(b.windSpeed), direction)
     case 'location':
       // Ascending latitude = south to north; descending = north to south.
       return (a, b) => compareNullableNumber(a.latitude, b.latitude, direction)
@@ -189,7 +193,9 @@ export function WeatherTable({ readings, onSelectStation }: WeatherTableProps) {
 
   return (
     <table className="w-full border-collapse text-left">
-      <caption className="sr-only">Combined temperature and wind gust readings by station</caption>
+      <caption className="sr-only">
+        Combined temperature, wind gust, and wind speed readings by station
+      </caption>
       <thead>
         <tr className="border-b border-gray-300 text-sm text-gray-600">
           <SortableHeader column="station" label="Station" sort={sort} onSort={handleSort} />
@@ -200,6 +206,7 @@ export function WeatherTable({ readings, onSelectStation }: WeatherTableProps) {
             onSort={handleSort}
           />
           <SortableHeader column="windGust" label="Wind gust" sort={sort} onSort={handleSort} />
+          <SortableHeader column="windSpeed" label="Wind speed" sort={sort} onSort={handleSort} />
           <SortableHeader
             column="location"
             label="Location"
@@ -217,7 +224,10 @@ export function WeatherTable({ readings, onSelectStation }: WeatherTableProps) {
       </thead>
       <tbody>
         {sortedReadings.map((reading) => {
-          const latest = latestOf(reading.temperature) ?? latestOf(reading.windGust)
+          const latest =
+            latestOf(reading.temperature) ??
+            latestOf(reading.windGust) ??
+            latestOf(reading.windSpeed)
           const selectStation = onSelectStation
             ? () => onSelectStation(reading.stationId)
             : undefined
@@ -255,6 +265,9 @@ export function WeatherTable({ readings, onSelectStation }: WeatherTableProps) {
               </td>
               <td className="py-2 pr-4">
                 <ParameterCell readings={reading.windGust} />
+              </td>
+              <td className="py-2 pr-4">
+                <ParameterCell readings={reading.windSpeed} />
               </td>
               <td className="py-2 pr-4 text-sm text-gray-500">{formatLocation(reading)}</td>
               <td className="py-2 pr-4 text-sm text-gray-500">

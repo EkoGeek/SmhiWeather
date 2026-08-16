@@ -16,10 +16,10 @@ function App() {
   })
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="mb-1 text-2xl font-semibold text-gray-900">SMHI Weather Readings</h1>
       <p className="mb-6 text-gray-600">
-        Combined Lufttemperatur and Byvind data from SMHI's open data API.
+        Combined Lufttemperatur, Byvind, and Medelvind data from SMHI's open data API.
       </p>
 
       <WeatherFilters

@@ -3,8 +3,8 @@ using SmhiWeather.Domain;
 namespace SmhiWeather.Api.Weather;
 
 /// <summary>
-/// Temperature/WindGust hold one entry per SMHI-reported measurement for the requested period -
-/// one for period=hour, up to ~24 for period=day. Either list may be empty.
+/// Temperature/WindGust/WindSpeed hold one entry per SMHI-reported measurement for the requested
+/// period - one for period=hour, up to ~24 for period=day. Any list may be empty.
 /// </summary>
 public sealed record WeatherStationReadingResponse(
     string StationId,
@@ -12,7 +12,8 @@ public sealed record WeatherStationReadingResponse(
     double? Latitude,
     double? Longitude,
     IReadOnlyList<ParameterReadingResponse> Temperature,
-    IReadOnlyList<ParameterReadingResponse> WindGust)
+    IReadOnlyList<ParameterReadingResponse> WindGust,
+    IReadOnlyList<ParameterReadingResponse> WindSpeed)
 {
     public static WeatherStationReadingResponse FromDomain(WeatherStationReading reading) => new(
         reading.StationId,
@@ -20,5 +21,6 @@ public sealed record WeatherStationReadingResponse(
         reading.Location?.Latitude,
         reading.Location?.Longitude,
         reading.Temperature.Select(ParameterReadingResponse.FromDomain).ToList(),
-        reading.WindGust.Select(ParameterReadingResponse.FromDomain).ToList());
+        reading.WindGust.Select(ParameterReadingResponse.FromDomain).ToList(),
+        reading.WindSpeed.Select(ParameterReadingResponse.FromDomain).ToList());
 }

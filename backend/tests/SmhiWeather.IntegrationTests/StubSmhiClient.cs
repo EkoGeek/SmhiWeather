@@ -17,6 +17,9 @@ internal sealed class StubSmhiClient : ISmhiClient
     public Task<SmhiParameterDataset> GetByvindAsync(string? stationId, WeatherPeriod period, CancellationToken cancellationToken) =>
         Task.FromResult(Series("meter per sekund", period == WeatherPeriod.Day ? [4.0, 6.2, 9.7] : [9.7]));
 
+    public Task<SmhiParameterDataset> GetMedelvindAsync(string? stationId, WeatherPeriod period, CancellationToken cancellationToken) =>
+        Task.FromResult(Series("meter per sekund", period == WeatherPeriod.Day ? [1.5, 2.8, 5.1] : [5.1]));
+
     private static SmhiParameterDataset Series(string unit, double[] values) => new(
     [
         new SmhiStationSeries(
