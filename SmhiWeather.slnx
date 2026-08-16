@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/backend/" />
+  <Folder Name="/backend/src/">
+    <Project Path="backend/src/SmhiWeather.Api/SmhiWeather.Api.csproj" />
+    <Project Path="backend/src/SmhiWeather.Application/SmhiWeather.Application.csproj" />
+    <Project Path="backend/src/SmhiWeather.Domain/SmhiWeather.Domain.csproj" />
+    <Project Path="backend/src/SmhiWeather.Infrastructure/SmhiWeather.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/backend/tests/">
+    <Project Path="backend/tests/SmhiWeather.IntegrationTests/SmhiWeather.IntegrationTests.csproj" />
+    <Project Path="backend/tests/SmhiWeather.UnitTests/SmhiWeather.UnitTests.csproj" />
+  </Folder>
+</Solution>
